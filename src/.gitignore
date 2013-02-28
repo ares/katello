@@ -1,4 +1,5 @@
 /Gemfile.lock
+/Gemfile32.lock
 .bundle
 .bin
 db/*.sqlite3

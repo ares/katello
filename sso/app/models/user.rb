@@ -1,4 +1,4 @@
-# A user that can authenticate against Katello system
+# A user that can authenticate
 class User
   attr_accessor :username, :password
 
@@ -7,6 +7,10 @@ class User
     self.password = password
   end
 
+  # authenticate user
+  #
+  # currently we use only Katello to authenticate user using his credentials
+  # @return [true, false] was authentication successful?
   def authenticate
     true
   end

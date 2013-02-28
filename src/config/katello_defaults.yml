@@ -72,6 +72,12 @@ common:
   notification:
     polling_seconds: 120
 
+  # authentication
+  sso:
+    enable: true
+    provider_url: http://localhost:3002
+    logout_path: /logout
+
   # Setup your UI search configuration.
   search:
     # specifies the number of search history elementsthat will be retained for users

@@ -6,12 +6,12 @@ require 'openid/store/filesystem'
 
 class LoginController < ApplicationController
   include OpenID::Server
-  layout nil
+  layout false, :only => :provider
 
   def index
-    if session[:username] && cookies[:username].blank?
-      cookies[:username] = session[:username]
-      redirect_to params[:return_url] || root_path
+    if is_logged_in? && cookies[:username].blank?
+      cookies[:username] = current_username
+      redirect_to return_url
     else
       session[:return_url] = params[:return_url]
     end
@@ -22,8 +22,8 @@ class LoginController < ApplicationController
     user        = User.new(credentials[:username], credentials[:password])
     if user.authenticate
       session[:username] = user.username
-      cookies[:username] = { :value => session[:username], :expires => 10.hours.from_now }
-      redirect_to session[:return_url] || root_path
+      cookies[:username] = { :value => current_username, :expires => 10.hours.from_now }
+      redirect_to return_url
     else
       flash.now[:error] = 'Authentication failed, try again'
       render :action => 'index'
@@ -46,7 +46,9 @@ class LoginController < ApplicationController
     end
 
     # cookie was set but no user is logged in, we need to identify user first so send him to index
-    if request.get? && session[:username].blank?
+    # if request is not GET it's not user request but RP background request which is always not
+    # logged in so we skip this check in such case
+    if request.get? && !is_logged_in?
       redirect_to root_path(:return_url => params[:"openid.return_to"])
       return
     end
@@ -59,15 +61,15 @@ class LoginController < ApplicationController
       if is_authorized(identity, oidreq.trust_root)
         req_identity = identity.split('/').last
 
-        if session[:username] != req_identity
+        if current_username != req_identity
           # cookie says identifies another that current user, current user has precedence
           # we reset cookie and let the process begin again from RP
-          cookies[:username] = session[:username]
+          cookies[:username] = current_username
           redirect_to params[:"openid.return_to"]
           return
         else
           # we make sure cookie is set and response to OpenID auth request
-          cookies[:username] = { :value => session[:username], :expires => 10.hours.from_now }
+          cookies[:username] = { :value => current_username, :expires => 10.hours.from_now }
           oidresp            = oidreq.answer(true, nil, identity)
         end
       end
@@ -80,10 +82,18 @@ class LoginController < ApplicationController
 
   def logout
     session[:username] = nil
-    redirect_to root_path
+    redirect_to return_url
   end
 
   private
+
+  def is_logged_in?
+    session[:username].present?
+  end
+
+  def current_username
+    session[:username]
+  end
 
   def is_authorized(*args)
     true # TODO whitelist
@@ -98,26 +108,28 @@ class LoginController < ApplicationController
     case web_response.code
       when HTTP_OK
         render :text => web_response.body, :status => 200
-
       when HTTP_REDIRECT
         redirect_to web_response.headers['location']
-
       else
         render :text => web_response.body, :status => 400
     end
   end
 
   def url_for_user
-    url_for :controller => 'user', :action => session[:username]
+    url_for :controller => 'user', :action => current_username
   end
 
   def server
-    if @server.nil?
+    @server ||= begin
       server_url = url_for :controller => 'login', :action => 'provider', :only_path => false
       dir        = Pathname.new(Rails.root).join('db').join('openid-store')
       store      = OpenID::Store::Filesystem.new(dir)
-      @server    = Server.new(store, server_url)
+      Server.new(store, server_url)
     end
-    return @server
   end
+
+  def return_url
+    params[:return_url] || session[:return_url] || root_path
+  end
+
 end

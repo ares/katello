@@ -1,4 +1,7 @@
 
+require 'rack/openid'
+Rails.configuration.middleware.use Rack::OpenID
+
 Rails.configuration.middleware.use RailsWarden::Manager do |config|
   config.failure_app = FailedAuthenticationController
   config.default_scope = :user
@@ -6,7 +9,7 @@ Rails.configuration.middleware.use RailsWarden::Manager do |config|
   # all UI requests are handled in the default scope
   config.scope_defaults(
     :user,
-    :strategies   => [:sso, Katello.config.warden.to_sym],
+    :strategies => [:openid, Katello.config.warden.to_sym],
     :store        => true,
     :action       => 'unauthenticated_ui'
   )
@@ -14,7 +17,7 @@ Rails.configuration.middleware.use RailsWarden::Manager do |config|
   # API requests are handled in the :api scope
   config.scope_defaults(
     :api,
-    :strategies   => [:oauth, :sso, :certificate, Katello.config.warden.to_sym, :no_credentials],
+    :strategies   => [:oauth, :certificate, Katello.config.warden.to_sym, :no_credentials],
     :store        => false,
     :action       => 'unauthenticated_api'
   )
@@ -36,6 +39,39 @@ Warden::Manager.after_authentication do |user,auth,opts|
   user = user.username if user.respond_to? :username
   message = auth.winning_strategy.message
   Rails.logger.debug "User #{user} authenticated: #{auth.winning_strategy.message}"
+end
+
+# authenticate against OpenID
+Warden::Strategies.add(:openid) do
+  def valid?
+    Katello.config.sso.enable
+  end
+
+  def authenticate!
+    if (response = env[Rack::OpenID::RESPONSE])
+      # we have response from OpenID provider so we try to login user
+      case response.status
+        when :success
+          if (user = User.find_by_username(response.identity_url.split('/').last))
+            success!(user)
+          else
+            fail!('User not found')
+            throw(:warden, :openid => { :response => response })
+          end
+        else
+          fail!(response.respond_to?(:message) ? response.message : "OpenID authentication failed: #{response.status}")
+      end
+    elsif (username = cookies[:username])
+      # we already have cookie
+      identifier = "#{Katello.config.sso.provider_url}/user/#{username}"
+      custom!([401,
+               { 'WWW-Authenticate' => Rack::OpenID.build_header({:identifier => identifier}) },
+               ''])
+    else
+      # we have no cookie yet so we plain redirect to OpenID provider to login
+      redirect!("#{Katello.config.sso.provider_url}?return_url=#{request.url}")
+    end
+  end
 end
 
 # authenticate against database
@@ -115,20 +151,6 @@ Warden::Strategies.add(:certificate) do
 
   def drop_cn_prefix_from_subject(subject_string)
     subject_string.sub(/\/CN=/i, '')
-  end
-end
-
-Warden::Strategies.add(:sso) do
-  def valid?
-    true
-  end
-
-  def authenticate!
-    return fail('No X-Forwarded-User header, skipping sso authentication') if request.env['HTTP_X_FORWARDED_USER'].blank?
-
-    user_id = request.env['HTTP_X_FORWARDED_USER'].split("@").first
-    u = User.where(:username => user_id).first
-    u ? success!(u, "single sign-on") : fail!("Username is not correct - could not log in")
   end
 end
 

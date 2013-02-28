@@ -48,6 +48,7 @@ Sso::Application.routes.draw do
 
   post '/login' => 'login#login'
   get '/logout' => 'login#logout'
+  # we need provider action for user and RP
   get '/provider' => 'login#provider'
   post '/provider' => 'login#provider'
 
