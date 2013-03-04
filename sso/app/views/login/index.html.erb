@@ -1,0 +1,11 @@
+<%= flash[:error] %>
+
+<% if session[:username].present? %>
+    Logged in as <%= session[:username] %>, <%= link_to 'logout', logout_path %>
+<% else %>
+    <%= form_for :user, :url => login_url do |f| %>
+        Username: <%= f.text_field :username, :value => cookies[:username] %>
+        Password: <%= f.password_field :password %>
+        <%= f.submit 'Login' %>
+    <% end %>
+<% end %>
