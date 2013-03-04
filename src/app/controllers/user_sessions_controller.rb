@@ -74,6 +74,12 @@ class UserSessionsController < ApplicationController
     end
   end
 
+  def authenticate
+    authenticate! :scope => :sso
+    # if authentication passed we render 200 status code
+    render :text => '', :status => :ok
+  end
+
   private
 
   def login_user

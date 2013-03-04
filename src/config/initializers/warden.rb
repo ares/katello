@@ -21,6 +21,14 @@ Rails.configuration.middleware.use RailsWarden::Manager do |config|
     :store        => false,
     :action       => 'unauthenticated_api'
   )
+
+  # request from SSO application to authenticate user
+  config.scope_defaults(
+      :sso,
+      :strategies => [Katello.config.warden.to_sym],
+      :store      => false,
+      :action     => 'unauthenticated_sso'
+  )
 end
 
 class Warden::SessionSerializer
@@ -84,14 +92,14 @@ Warden::Strategies.add(:database) do
 
   def authenticate!
     if params[:auth_username] && params[:auth_password]
-      # API simple auth
-      Rails.logger.debug("Warden is authenticating #{params[:auth_username]} against database")
-      u = User.authenticate!(params[:auth_username], params[:auth_password])
+      username, password = params[:auth_username], params[:auth_password] # API simple auth
     elsif params[:username] && params[:password]
-      # UI form
-      Rails.logger.debug("Warden is authenticating #{params[:username]} against database")
-      u = User.authenticate!(params[:username], params[:password])
+      username, password = params[:username], params[:password] # UI form
     end
+
+    Rails.logger.debug("Warden is authenticating #{params[:auth_username]} against database")
+    u = User.authenticate!(username, password)
+
     u ? success!(u, "database") : fail!("Username or password do not match database - could not log in")
   end
 end
@@ -106,14 +114,14 @@ Warden::Strategies.add(:ldap) do
 
   def authenticate!
     if params[:auth_username] && params[:auth_password]
-      # API simple auth
-      Rails.logger.debug("Warden is authenticating #{params[:auth_username]} against ldap")
-      u = User.authenticate_using_ldap!(params[:auth_username], params[:auth_password])
+      username, password = params[:auth_username], params[:auth_password] # API simple auth
     elsif params[:username] && params[:password]
-      # UI form
-      Rails.logger.debug("Warden is authenticating #{params[:username]} against ldap")
-      u = User.authenticate_using_ldap!(params[:username], params[:password])
+      username, password = params[:username], params[:password] # UI form
     end
+
+    Rails.logger.debug("Warden is authenticating #{params[:username]} against ldap")
+    u = User.authenticate_using_ldap!(username, password)
+
     u ? success!(u, "LDAP") : fail!("Could not log in using LDAP")
   end
 end

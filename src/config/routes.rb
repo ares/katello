@@ -508,7 +508,7 @@ Src::Application.routes.draw do
   match '/logout' => 'user_sessions#destroy', :via=>[:post, :get]
   match '/user_session/logout' => 'user_sessions#destroy'
   match '/user_session' => 'user_sessions#show', :via=>:get, :as=>'show_user_session'
-  match '/sso' => 'user_sessions#create', :via=>:get
+  match '/authenticate' => 'user_sessions#authenticate', :via=>:get
 
   resources :password_resets, :only => [:create, :edit, :update] do
     collection do
