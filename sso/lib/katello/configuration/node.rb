@@ -1,0 +1,1 @@
+../../../../src/lib/katello/configuration/node.rb

@@ -3,3 +3,4 @@ db/openid-store
 doc
 log
 tmp
+config/sso.yml

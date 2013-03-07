@@ -1,0 +1,24 @@
+:common:
+  # relay parties that we can trust, this list should contain every application 
+  # that wants to use this application for SSO
+  :whitelist:
+   - https://localhost:3000
+   - https://localhost:3001
+  
+  # configuration of all authentication backends
+  :backends:
+    :katello:
+      # on which url we should authenticate users against katello 
+      :url: https://localhost:3000/katello/authenticate
+
+development:
+  :whitelist:
+   - http://localhost:3000
+   - http://localhost:3001
+  
+  :backends:
+    :katello:
+      :url: http://localhost:3000/katello/authenticate
+
+test:
+production:

@@ -12,7 +12,8 @@ class User
   # currently we use only Katello to authenticate user using his credentials
   # @return [true, false] was authentication successful?
   def authenticate
-    uri = URI.parse("http://localhost:3000/katello/authenticate?username=#{username}&password=#{password}")
+    auth_url = Configuration.config.backends.katello.url
+    uri = URI.parse("#{auth_url}?username=#{username}&password=#{password}")
     http = Net::HTTP.new(uri.host, uri.port)
     request = Net::HTTP::Get.new(uri.request_uri)
     response = http.request(request)

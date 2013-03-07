@@ -58,7 +58,7 @@ class LoginController < ApplicationController
 
       identity = oidreq.identity
 
-      if is_authorized(identity, oidreq.trust_root)
+      if is_authorized(oidreq.trust_root)
         req_identity = identity.split('/').last
 
         if current_username != req_identity
@@ -72,6 +72,10 @@ class LoginController < ApplicationController
           cookies[:username] = { :value => current_username, :expires => 10.hours.from_now }
           oidresp            = oidreq.answer(true, nil, identity)
         end
+      else
+        flash[:error] = "Relay Party #{oidreq.trust_root} not trusted, consult SSO configuration."
+        redirect_to root_path
+        return
       end
     else
       oidresp = server.handle_request(oidreq)
@@ -95,8 +99,8 @@ class LoginController < ApplicationController
     session[:username]
   end
 
-  def is_authorized(*args)
-    true # TODO whitelist
+  def is_authorized(relay_party)
+    ::Configuration.config.whitelist.include?(relay_party)
   end
 
   def render_response(oidresp)
