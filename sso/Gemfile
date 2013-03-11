@@ -38,3 +38,16 @@ gem 'jquery-rails'
 # gem 'debugger'
 
 gem 'ruby-openid'
+
+group :development do
+  gem 'pry'
+end
+
+group :test, :development do
+  gem 'minitest-rails'
+end
+
+group :test do
+  gem 'webmock'
+  gem 'turn'
+end

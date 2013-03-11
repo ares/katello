@@ -92,7 +92,7 @@ class LoginController < ApplicationController
   private
 
   def is_logged_in?
-    session[:username].present?
+    current_username.present?
   end
 
   def current_username
