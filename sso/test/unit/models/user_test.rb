@@ -1,33 +1,13 @@
 require 'test_helper'
 
 describe User do
-  before do
-    @username = @password = 'admin'
-    @user     = User.new(@username, @password)
-    @url      = "http://locahost:3000/katello"
-  end
+  let(:user) { User.new('admin', 'admin') }
 
   describe "#authenticate" do
-    describe "successful response" do
-      before do
-        stub_request(:get, "#{@url}?password=#{@password}&username=#{@username}").
-            to_return(:status => 200, :body => "", :headers => {})
-      end
-      it "returns true" do
-        Configuration.config.backends.katello.stub :url, @url do
-          @user.authenticate.must_equal true
-        end
-      end
-    end
-
-    describe "negative response" do
-      before do
-        stub_request(:get, "#{@url}?password=#{@password}&username=#{@username}").
-            to_return(:status => 403, :body => "", :headers => {})
-      end
-      it "returns false" do
-        Configuration.config.backends.katello.stub :url, @url do
-          @user.authenticate.must_equal false
+    it "respects Backends::Base" do
+      [true, false].each do |bool|
+        Backends::Base.stub(:authenticate, bool) do
+          user.authenticate.must_equal(bool)
         end
       end
     end
