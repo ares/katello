@@ -1,7 +1,23 @@
-# Be sure to restart your server when you modify this file.
+if RUBY_VERSION >= "1.9.3"
+  require 'securerandom'
+else
+  require 'active_support/secure_random'
+end
 
-# Your secret key for verifying the integrity of signed cookies.
-# If you change this key, all old signed cookies will become invalid!
-# Make sure the secret is at least 30 characters and all random,
-# no regular words or you'll be exposed to dictionary attacks.
-Sso::Application.config.secret_token = '57e27018c3a9cf5ab6a8cf0edd9a0c9aa4d39d1e60e16c950673221d9f276788366a7c8325b812a1321f2786de3312126fda4583456741c7773574edd1797ff2'
+
+begin
+  if File.exists?('/etc/katello-sso/secret_token')
+    # Read token string from the file.
+    token = IO.read('/etc/katello-sso/secret_token')
+    raise RuntimeError, 'Size is too small' if token.length < 9
+  else
+    token = Configuration.config.secret_token
+  end
+  Sso::Application.config.secret_token = token.chomp
+rescue Exception => e
+  # If anything is wrong make sure the token is random. This is safe even when
+  # Katello is not configured correctly for any reason (but session is lost
+  # after each restart).
+  Rails.logger.warn "Using randomly generated secure token: #{e.message}"
+  Sso::Application.config.secret_token = RUBY_VERSION >= "1.9.3" ? SecureRandom.hex(80) : ActiveSupport::SecureRandom.hex(80)
+end
