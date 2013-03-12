@@ -13,7 +13,10 @@ require 'logging'
 
 module Katello
   class Logging
-    def initialize
+    attr_accessor :configuration
+
+    def initialize(config)
+      self.configuration = config
       configure_color_scheme
       FileUtils.mkdir_p root_configuration.path unless File.directory?(root_configuration.path)
     rescue Errno::EACCES
@@ -77,11 +80,6 @@ module Katello
           end)
         end
       end
-    end
-
-    # shortcut to logging configuration
-    def configuration
-      Katello.config.logging
     end
 
     # shortcut to root logger configuration

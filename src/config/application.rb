@@ -130,10 +130,10 @@ module Src
     # last caller is "script/delayed_job:3".
     if caller.last =~ /script\/delayed_job:\d+$/ ||
         ((caller[-10..-1] || []).any? {|l| l =~ /\/rake/} && ARGV.include?("jobs:work"))
-      Katello::Logging.new.configure(:prefix => 'delayed_')
+      Katello::Logging.new(Katello.config.logging).configure(:prefix => 'delayed_')
       Delayed::Worker.logger = Logging.logger['app']
     else
-      Katello::Logging.new.configure
+      Katello::Logging.new(Katello.config.logging).configure
     end
 
     config.logger = Logging.logger['app']

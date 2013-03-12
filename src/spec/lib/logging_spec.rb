@@ -38,7 +38,7 @@ describe Katello::Logging do
     FileUtils.stub(:mkdir_p => true)
   end
 
-  let(:logging) { Katello::Logging.new }
+  let(:logging) { Katello::Logging.new(testing_config.logging) }
 
   describe "#configuration" do
     subject { logging.send :configuration }
@@ -102,7 +102,7 @@ describe Katello::Logging do
     context "log trace is enabled" do
       before do
         Katello.config.logging.stub(:log_trace => true)
-        logging = Katello::Logging.new
+        logging = Katello::Logging.new(testing_config.logging)
         logging.configure
       end
 

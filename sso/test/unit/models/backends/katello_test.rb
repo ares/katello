@@ -4,9 +4,9 @@ describe Backends::Katello do
   let(:username) { "admin" }
   let(:password) { "admin" }
   let(:url) { "http://locahost:3000/katello" }
-  let(:options) { { :username => username, :password => password } }
+  let(:user) { User.new username, password }
   let(:backend) { Backends::Katello.new }
-  let(:authentication) { backend.authenticate(options) }
+  let(:authentication) { backend.authenticate(user) }
 
   describe "#authenticate" do
     describe "successful response" do

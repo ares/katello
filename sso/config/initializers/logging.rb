@@ -1,0 +1,1 @@
+::Katello::Logging.new(Configuration.config.logging).configure

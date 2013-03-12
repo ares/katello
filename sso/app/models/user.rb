@@ -12,6 +12,6 @@ class User
   # currently we use only Katello to authenticate user using his credentials
   # @return [true, false] was authentication successful?
   def authenticate
-    Backends::Base.authenticate(:username => username, :password => password)
+    Backends::Base.authenticate(self)
   end
 end

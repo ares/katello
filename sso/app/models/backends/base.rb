@@ -1,23 +1,28 @@
 class Backends::Base
   # runs authentication through all enabled backends
-  def self.authenticate(opts)
+  def self.authenticate(user)
     Configuration.config.backends.enabled.any? do |name|
       begin
         backend = "Backends::#{name.to_s.camelize}".constantize
       rescue NameError => e
-        Rails.logger.error "Wrong backend name #{name}, check application configuration, ignoring..."
-        Rails.logger.debug e.backtrace.join("\n")
+        logger.error "Wrong backend name #{name}, check application configuration, ignoring..."
+        logger.debug e.backtrace.join("\n")
         next(false)
       end
 
-      backend.new.authenticate(opts)
+      backend.new.authenticate(user)
     end
   end
 
   # should authenticate user and return true or false as a result
-  # opts should contain all credentials needed for backend
   # real authentication backends should implement this method
-  def authenticate(opts)
+  def authenticate(user)
     raise NotImplementedError
+  end
+
+  private
+
+  def logger
+    Logging.logger['auth']
   end
 end

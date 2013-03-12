@@ -5,7 +5,12 @@ class Configuration
     loader = Katello::Configuration::Loader.new(
         :config_file_paths        => %W(#{Rails.root}/config/sso.yml /etc/katello-sso/sso.yml),
         :validation               => lambda {|_| },
-        :default_config_file_path => "#{Rails.root}/config/sso_defaults.yml"
+        :default_config_file_path => "#{Rails.root}/config/sso_defaults.yml",
+        :config_post_process => lambda do |config, environment|
+          root = config.logging.loggers.root
+          root[:path] = "#{Rails.root}/log" if !root.has_key?(:path) && environment
+          root[:type] ||= 'file'
+        end
     )
     @config = loader.config
   end
