@@ -6,9 +6,29 @@
   <%= javascript_include_tag "application" %>
   <%= csrf_meta_tags %>
 </head>
-<body>
+<body id="loginpage">
 
-<%= yield %>
+
+<div id="wrapper">
+  <article id="maincontent">
+
+    <%= render 'layouts/notifications' if flash[:error].present? %>
+
+    <div class="container">
+      <aside>
+        <div class="logo">
+          <%= image_tag 'seyener.png' %>
+          <br/>
+          <strong>Seyener</strong>
+        </div>
+      </aside>
+
+      <section>
+        <%= yield %>
+      </section>
+    </div>
+  </article>
+</div>
 
 </body>
 </html>

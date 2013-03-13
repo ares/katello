@@ -38,6 +38,10 @@ gem 'ruby-openid'
 
 gem 'logging'
 
+gem "compass-rails"
+gem "haml-rails"
+gem "alchemy", ">= 1.0.1"
+
 group :development do
   gem 'pry'
 end

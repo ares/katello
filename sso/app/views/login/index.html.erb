@@ -1,13 +1,34 @@
-<%= flash[:error] %>
-
-<% if session[:username].present? %>
-    Logged in as <%= session[:username] %>, <%= link_to 'logout', logout_path %>
-<% else %>
-    <%= form_for :user, :url => login_url do |f| %>
-        <label for="user_username">Username:</label>
-        <%= f.text_field :username, :value => cookies[:username] %>
-        <label for="user_password">Password:</label>
-        <%= f.password_field :password %>
-        <%= f.submit 'Login' %>
-    <% end %>
-<% end %>
+<div class="card" id="login">
+  <% if session[:username].present? %>
+      Logged in as <%= session[:username] %>, <%= link_to 'logout', logout_path %>
+  <% else %>
+      <%= form_tag login_url, :id => 'login_form', :class => 'form labels_top messages_bottom' do %>
+          <div class="control_group">
+            <div class="label"><%= label_tag :username, 'Username' %></div>
+            <div class="input">
+              <%= text_field_tag :username, params[:username],
+                                 :class => 'username',
+                                 :id    => "username" %>
+            </div>
+          </div>
+          <div class="control_group">
+            <div class="label"><%= label_tag :password, 'Password' %></div>
+            <div class="input"><%= password_field_tag :password, params[:password],
+                                                      :class => 'password',
+                                                      :id    => 'password-input' %>
+            </div>
+          </div>
+          <div class="control_group">
+            <div class="control_group">
+              <div class="right_aligned">
+                <%= submit_tag 'Login', :class => "button primary", :id => 'login_btn' %>
+              </div>
+              <div class="right_aligned">
+                <div class=".spinner">
+                </div>
+              </div>
+            </div>
+          </div>
+      <% end %>
+  <% end %>
+</div>

@@ -18,8 +18,7 @@ class LoginController < ApplicationController
   end
 
   def login
-    credentials = params[:user] || {}
-    user        = User.new(credentials[:username], credentials[:password])
+    user = User.new(params[:username], params[:password])
     if user.authenticate
       session[:username] = user.username
       cookies[:username] = { :value => current_username, :expires => 10.hours.from_now }

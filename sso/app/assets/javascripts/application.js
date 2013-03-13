@@ -13,3 +13,8 @@
 //= require jquery
 //= require jquery_ujs
 //= require_tree .
+
+//= require alchemy/flash_messages
+//= require alchemy/forms
+//= require alchemy/password
+//= require alchemy/login
