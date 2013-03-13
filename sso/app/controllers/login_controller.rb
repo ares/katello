@@ -21,7 +21,8 @@ class LoginController < ApplicationController
     user = User.new(params[:username], params[:password])
     if user.authenticate
       session[:username] = user.username
-      cookies[:username] = { :value => current_username, :expires => 10.hours.from_now }
+      cookies[:username] = { :value   => current_username,
+                             :expires => ::Configuration.config.cookie_life.hours.from_now }
       redirect_to return_url
     else
       flash.now[:error] = 'Authentication failed, try again'
@@ -68,7 +69,8 @@ class LoginController < ApplicationController
           return
         else
           # we make sure cookie is set and response to OpenID auth request
-          cookies[:username] = { :value => current_username, :expires => 10.hours.from_now }
+          cookies[:username] = { :value   => current_username,
+                                 :expires => ::Configuration.config.cookie_life.hours.from_now }
           oidresp            = oidreq.answer(true, nil, identity)
         end
       else

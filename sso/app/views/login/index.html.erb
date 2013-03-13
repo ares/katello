@@ -1,6 +1,7 @@
-<div class="card" id="login">
+<div class="card" id="login" xmlns="http://www.w3.org/1999/html">
   <% if session[:username].present? %>
-      Logged in as <%= session[:username] %>, <%= link_to 'logout', logout_path %>
+      Logged in as <%= session[:username] %>, <%= link_to 'logout', logout_path %><br/>
+      Your session will expire at <%= Configuration.config.session_life.hours.from_now %>.
   <% else %>
       <%= form_tag login_url, :id => 'login_form', :class => 'form labels_top messages_bottom' do %>
           <div class="control_group">
