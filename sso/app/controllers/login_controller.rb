@@ -101,7 +101,8 @@ class LoginController < ApplicationController
   end
 
   def is_authorized(relay_party)
-    ::Configuration.config.whitelist.include?(relay_party)
+    domain = URI.parse(relay_party).host
+    ::Configuration.config.whitelist.include?(domain)
   end
 
   def render_response(oidresp)
@@ -114,7 +115,7 @@ class LoginController < ApplicationController
       when HTTP_OK
         render :text => web_response.body, :status => 200
       when HTTP_REDIRECT
-        redirect_to web_response.headers['location']
+        redirect_to sslize(web_response.headers['location'])
       else
         render :text => web_response.body, :status => 400
     end
@@ -134,7 +135,18 @@ class LoginController < ApplicationController
   end
 
   def return_url
-    params[:return_url] || session[:return_url] || root_path
+    sslize(params[:return_url] || session[:return_url] || root_path)
+  end
+
+  # if a RP uses rack <= 1.2 it does not detect url scheme correctly when it's behind proxy
+  # so we'd redirect back to https app with http request
+  # because of that we must ensure we use https if it's turned on in configuration
+  def sslize(url)
+    if ::Configuration.config.enforce_ssl
+      url = URI.parse(url)
+      url.scheme = 'https'
+    end
+    url.to_s
   end
 
 end

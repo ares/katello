@@ -1,36 +1,48 @@
-# Katello SSO Rails app developer documentation
+# Signo - Katello SSO Rails app
 
-## What can be found here?
+This applications was developed as a part of Katello project. However it can be used with any other
+application that would benefit from same schema. To find out information about how it works checkout
+wiki page https://fedorahosted.org/katello/wiki/SingleSignOn
 
-YARD documentation is intended for developers. This documentation contains:
+# Setup
 
--   code documentation
--   high level guides to architectures and implementation details
+There are currently two authentication backends. First is using Katello application and second
+is using LDAP. You can use all backends at the same time. You just configure which you want to use
+in configuration file under key backends.enabled. It's an array, user is authenticated when first
+of them responds with success.
 
-User documentation can be found on [wiki](https://fedorahosted.org/katello/).
+## Katello backend
 
-*Note: older developer guides can be found on wiki, they have not been migrated.*
+You must configure Katello authentication URL in configuration file. Use config/sso.yml and set
+key backends.katello.url with URL of your Katello installation. Note that this applications sends
+credentials unencrypted so make sure you use HTTPS in production.
 
-### Guides
+## LDAP backend
 
--   {file:doc/YARDDocumentation.md}
--   {file:doc/ForemanIntegration.md}
--   {file:doc/Graphs.md}
--   Original Rails generated README {file:doc/RailsReadme}, we may do certain things differently
+We are using ldap_fluff gem, checkout it's documentation for more details about configuration
+options
+https://github.com/jsomara/ldap_fluff
 
-    -   we use `doc` directory for storing markdown guides instead of a generated documentation
+At time of writing it should support OpenLDAP, FreeIPA and AD ldaps. You can configure it in main
+Signo configuration file under key backends.ldap
 
-### Source
+## Enforce SSL option
 
--   {Katello::Configuration}
--   {Notifications}
+You should use HTTPS whenever possible. Some relay parties (Signo clients) may use old rack which
+has problems detecting HTTPS request behind proxy. E.g. Katello is usually installed behind Apache
+which works as reverse proxy server.
 
-## How to YARD
+If this is your case you must enable enforce_ssl option in configuration file. This will make sure
+all redirects outside Signo are using HTTPS protocol.
 
--   to see YARD documentation start Katello server and click on the link in the UI footer or go directly to
-    {http://path.to.katello/a_prefix/yard/docs/katello/frames}
+Also if you want to make sure your relay party verifies Signo's cert properly, you should configure
+you OpenID client to trust your CA. You can add code like this to your config/environment.rb
 
-    -   if it fails run `bundle exec yard doc --no-cache` first
+    # Load certificate
+    OpenID.fetcher.ca_file = "#{Rails.root}/config/ca-bundle.crt"
 
--   see {file:doc/YARDDocumentation.md}
+# Tests
+
+To run tests you can use rake task
+    rake minitest:unit
 

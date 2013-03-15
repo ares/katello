@@ -75,7 +75,7 @@ common:
   # authentication
   sso:
     enable: true
-    provider_url: http://localhost:3002
+    provider_url: https://localhost
     logout_path: /logout
 
   # Setup your UI search configuration.

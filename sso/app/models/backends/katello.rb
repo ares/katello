@@ -19,10 +19,11 @@ class Backends::Katello < Backends::Base
   end
 
   def do_auth
-    uri       = URI.parse("#{auth_url}?username=#{username}&password=#{password}")
-    http      = Net::HTTP.new(uri.host, uri.port)
-    request   = Net::HTTP::Get.new(uri.request_uri)
-    @response = http.request(request)
+    uri          = URI.parse("#{auth_url}?username=#{username}&password=#{password}")
+    http         = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = uri.scheme == 'https' || Configuration.config.enforce_ssl
+    request      = Net::HTTP::Get.new(uri.request_uri)
+    @response    = http.request(request)
   rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse,
       Net::HTTPHeaderSyntaxError, Net::ProtocolError, Errno::ECONNREFUSED => e
     logger.error "An error #{e.class} occured with message #{e.message}"

@@ -1,10 +1,12 @@
 :common:
+  # turn this to true if your relay parties use SSL
+  # this also makes sure that relay parties using old rack (<= 1.2) will be served properly
+  enforce_ssl: true
   # relay parties that we can trust, this list should contain every application 
   # that wants to use this application for SSO
   :whitelist:
-   - https://localhost:3000
-   - https://localhost:3001
-  
+   - localhost
+
   # configuration of all authentication backends
   :backends:
     # these backends will be used to authenticate user (order is significant)
@@ -13,7 +15,7 @@
      - katello
     :katello:
       # on which url we should authenticate users against katello 
-      :url: https://localhost:3000/katello/authenticate
+      :url: https://localhost/katello/authenticate
     :ldap:
       host: localhost
       port: 389
@@ -97,13 +99,9 @@
         enabled: true
 
 development:
-  :whitelist:
-   - http://localhost:3000
-   - http://localhost:3001
-
   :backends:
     :katello:
-      :url: http://localhost:3000/katello/authenticate
+      :url: https://localhost/katello/authenticate
 
   :logging:
     colorize: true
@@ -115,7 +113,4 @@ development:
         pattern: "[%5l %d %c] %m\n"
 
 test:
-  :whitelist:
-   - http://localhost:3000
-   - http://localhost:3001
 production:

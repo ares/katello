@@ -12,7 +12,7 @@ describe LoginController do
     end
 
     context "return_url set" do
-      let(:url) { 'http://localhost:3001' }
+      let(:url) { 'https://localhost' }
       before { get :index, :return_url => url }
 
       it "should store url to session" do
@@ -24,9 +24,11 @@ describe LoginController do
   describe "#login" do
     context "auth successful" do
       before do
-        stub_request(:get, "http://localhost:3000/katello/authenticate?password=#{password}&username=#{username}").
+        stub_request(:get, "https://localhost/katello/authenticate?password=#{password}&username=#{username}").
             to_return(:status => 200, :body => "", :headers => {})
-        post :login, :user => { :username => username, :password => password }
+        Configuration.config.backends.stub :enabled, [:katello] do
+          post :login, :username => username, :password => password
+        end
       end
 
       context "without return url" do
@@ -36,10 +38,12 @@ describe LoginController do
       end
 
       context "with return url in session" do
-        let(:url) { 'http://localhost:3001/test' }
+        let(:url) { 'https://localhost/test' }
         before do
           session[:return_url] = url
-          post :login, :user => { :username => username, :password => password }
+          Configuration.config.backends.stub :enabled, [:katello] do
+            post :login, :username => username, :password => password
+          end
         end
 
         it { response.redirect_url.must_equal url }
@@ -48,9 +52,9 @@ describe LoginController do
 
     context "auth failed" do
       before do
-        stub_request(:get, "http://localhost:3000/katello/authenticate?password=pass&username=#{username}").
+        stub_request(:get, "https://localhost/katello/authenticate?password=pass&username=#{username}").
             to_return(:status => 403, :body => "", :headers => {})
-        post :login, :user => { :username => username, :password => 'pass' }
+        post :login, :username => username, :password => 'pass'
       end
 
       it { response.must_be :success? }
@@ -59,13 +63,13 @@ describe LoginController do
 
   describe "#provider" do
     let(:openid_params) { { 'openid.assoc_handle' => '{HMAC-SHA1}{51399cc7}{L/riIQ==}',
-                            'openid.claimed_id'   => 'http://localhost:3002/user/admin',
-                            'openid.identity'     => 'http://localhost:3002/user/admin',
+                            'openid.claimed_id'   => 'https://localhost/user/admin',
+                            'openid.identity'     => 'https://localhost/user/admin',
                             'openid.mode'         => 'checkid_setup',
                             'openid.ns'           => 'http://specs.openid.net/auth/2.0',
                             'openid.ns.sreg'      => 'http://openid.net/extensions/sreg/1.1',
-                            'openid.realm'        => 'http://localhost:3000',
-                            'openid.return_to'    => 'http://localhost:3000/katello/' }
+                            'openid.realm'        => 'https://localhost',
+                            'openid.return_to'    => 'https://localhost/katello/' }
     }
 
     context "not logged user" do
@@ -75,11 +79,11 @@ describe LoginController do
 
       it "should redirect to login form" do
         response.must_be :redirect?
-        response.redirect_url.must_include(root_path(:return_url => 'http://localhost:3000/katello/'))
+        response.redirect_url.must_include(root_path(:return_url => 'https://localhost/katello/'))
       end
     end
 
-    context "user is logged in alread" do
+    context "user is logged in already" do
       before { session[:username] = username }
 
       context "user has no cookie" do
@@ -88,7 +92,7 @@ describe LoginController do
         it "should login user" do
           response.must_be :redirect?
           cookies[:username].must_equal username
-          response.redirect_url.must_include('http://localhost:3000/katello/')
+          response.redirect_url.must_include('https://localhost/katello/')
         end
       end
 
@@ -101,29 +105,29 @@ describe LoginController do
         it "should login user" do
           response.must_be :redirect?
           cookies[:username].must_equal username
-          response.redirect_url.must_include('http://localhost:3000/katello/')
+          response.redirect_url.must_include('https://localhost/katello/')
           response.redirect_url.must_include('id_res') # success
         end
       end
 
       context "user has cookie with different username than he is logged in" do
         before do
-          get :provider, openid_params.merge('openid.identity'   => 'http://localhost:3002/user/ares',
-                                             'openid.calimed_id' => 'http://localhost:3002/user/ares')
+          get :provider, openid_params.merge('openid.identity'   => 'https://localhost/user/ares',
+                                             'openid.calimed_id' => 'https://localhost/user/ares')
         end
 
         it "fixes cookie and redirects back to relay party" do
           response.must_be :redirect?
           cookies[:username].must_equal username
-          response.redirect_url.must_equal('http://localhost:3000/katello/')
+          response.redirect_url.must_equal('https://localhost/katello/')
           response.redirect_url.wont_include('id_res')
         end
       end
 
       context "Relay Party not authorized (whitelisted in configuration)" do
         before do
-          get :provider, openid_params.merge('openid.realm'     => 'http://localhost:3005',
-                                             'openid.return_to' => 'http://localhost:3005')
+          get :provider, openid_params.merge('openid.realm'     => 'https://mylocalhost',
+                                             'openid.return_to' => 'https://mylocalhost')
         end
 
         it "should redirect to root with error" do

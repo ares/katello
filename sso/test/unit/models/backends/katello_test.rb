@@ -3,7 +3,7 @@ require 'test_helper'
 describe Backends::Katello do
   let(:username) { "admin" }
   let(:password) { "admin" }
-  let(:url) { "http://locahost:3000/katello" }
+  let(:url) { "https://locahost/katello" }
   let(:user) { User.new username, password }
   let(:backend) { Backends::Katello.new }
   let(:authentication) { backend.authenticate(user) }
