@@ -14,6 +14,25 @@
     :katello:
       # on which url we should authenticate users against katello 
       :url: https://localhost:3000/katello/authenticate
+    :ldap:
+      host: localhost
+      port: 389
+       ## blank or :start_tls
+      encryption:
+      ## baseDN for ldap auth, eg dc=redhat,dc=com
+      base_dn: ou=People,dc=my-domain,dc=com
+      ##baseDN for your ldap groups, eg ou=Groups,dc=redhat,dc=com
+      group_base: ou=Groupd,dc=my-domain,dc=com
+      ## type of server. default == posix. :active_directory, :posix, :free_ipa
+      server_type: :posix
+      ## domain for your users if using active directory, eg redhat.com
+      ad_domain:
+      ## service account for authenticating ldap calls in active directory or ipa
+      service_user:
+      ## service password for authenticating ldap calls in active directory or ipa
+      service_pass:
+      ## allow anonymous queries for AD or FreeIPA
+      anon_queries:
 
   # here you can set length of cookies and session life, values are in hours
   # we want to store cookie with username for 1 year, it's just for better UX (username prefilled)

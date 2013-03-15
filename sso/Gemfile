@@ -35,6 +35,7 @@ gem 'jquery-rails'
 # gem 'debugger'
 
 gem 'ruby-openid'
+gem 'ldap_fluff'
 
 gem 'logging'
 

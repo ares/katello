@@ -4,6 +4,7 @@ class Backends::Base
     Configuration.config.backends.enabled.any? do |name|
       begin
         backend = "Backends::#{name.to_s.camelize}".constantize
+        logger.debug "Using backend #{backend.to_s}"
       rescue NameError => e
         logger.error "Wrong backend name #{name}, check application configuration, ignoring..."
         logger.debug e.backtrace.join("\n")
@@ -22,7 +23,11 @@ class Backends::Base
 
   private
 
-  def logger
+  def self.logger
     Logging.logger['auth']
+  end
+
+  def logger
+    self.class.logger
   end
 end

@@ -31,10 +31,12 @@ class Backends::Katello < Backends::Base
   end
 
   def check_result
-    @response && @response.code == '200'
+    (@response && @response.code == '200').tap do |result|
+      logger.info "user #{@username} authentication: #{result}"
+    end
   end
 
-  def logger
+  def self.logger
     Logging.logger['katello']
   end
 end
