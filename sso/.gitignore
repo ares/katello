@@ -4,3 +4,4 @@ doc
 log
 tmp
 config/sso.yml
+bundler.d/local*

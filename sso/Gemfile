@@ -43,15 +43,14 @@ gem "compass-rails"
 gem "haml-rails"
 gem "alchemy", ">= 1.0.1"
 
-group :development do
-  gem 'pry'
-end
-
 group :test, :development do
   gem 'minitest-rails'
 end
 
 group :test do
   gem 'webmock'
-  gem 'turn'
+end
+
+Dir[File.expand_path('bundler.d/*.rb', File.dirname(__FILE__))].each do |bundle|
+  self.instance_eval(Bundler.read_file(bundle), bundle)
 end
