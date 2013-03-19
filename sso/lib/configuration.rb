@@ -2,8 +2,8 @@ class Configuration
   attr_accessor :config
 
   def initialize
-    loader = Katello::Configuration::Loader.new(
-        :config_file_paths        => %W(#{Rails.root}/config/sso.yml /etc/katello-sso/sso.yml),
+    loader = Signo::Configuration::Loader.new(
+        :config_file_paths        => %W(#{Rails.root}/config/sso.yml /etc/signo/sso.yml),
         :validation               => lambda {|_| },
         :default_config_file_path => "#{Rails.root}/config/sso_defaults.yml",
         :config_post_process => lambda do |config, environment|

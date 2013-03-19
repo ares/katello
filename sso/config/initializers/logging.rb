@@ -1,1 +1,1 @@
-::Katello::Logging.new(Configuration.config.logging).configure
+::Signo::Logging.new(Configuration.config.logging).configure
