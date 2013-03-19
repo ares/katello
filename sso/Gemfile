@@ -34,20 +34,35 @@ gem 'jquery-rails'
 # To use debugger
 # gem 'debugger'
 
+# OpenID provider support
 gem 'ruby-openid'
+# Direct LDAP auth backend
 gem 'ldap_fluff'
 
+# better logging
 gem 'logging'
 
+# alchemy dependencies
 gem "compass-rails"
 gem "haml-rails"
+# UI
 gem "alchemy", ">= 1.0.1"
+
+# Stuff for i18n
+gem 'gettext_i18n_rails'
+gem 'i18n_data', '>= 0.2.6', :require => 'i18n_data'
+group :development do
+  # for generating i18n files
+  gem 'gettext', '>= 1.9.3', :require => false
+end
+
 
 group :test, :development do
   gem 'minitest-rails'
 end
 
 group :test do
+  # Requests stubbing
   gem 'webmock'
 end
 

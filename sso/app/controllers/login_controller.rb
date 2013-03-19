@@ -25,7 +25,7 @@ class LoginController < ApplicationController
                              :expires => ::Configuration.config.cookie_life.hours.from_now }
       redirect_to return_url
     else
-      flash.now[:error] = 'Authentication failed, try again'
+      flash.now[:error] = _('Authentication failed, try again')
       render :action => 'index'
     end
   end
@@ -74,7 +74,7 @@ class LoginController < ApplicationController
           oidresp            = oidreq.answer(true, nil, identity)
         end
       else
-        flash[:error] = "Relay Party #{oidreq.trust_root} not trusted, consult SSO configuration."
+        flash[:error] = _('Relay Party %s not trusted, consult SSO configuration.') % oidreq.trust_root
         redirect_to root_path
         return
       end

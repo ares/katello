@@ -1,11 +1,11 @@
 <div class="card" id="login" xmlns="http://www.w3.org/1999/html">
   <% if session[:username].present? %>
-      Logged in as <%= session[:username] %>, <%= link_to 'logout', logout_path %><br/>
-      Your session will expire at <%= Configuration.config.session_life.hours.from_now %>.
+      <%= _('Logged in as %s') % session[:username] %>, <%= link_to _('logout'), logout_path %><br/>
+      <%= _('Your session will expire at') %> <%= Configuration.config.session_life.hours.from_now %>.
   <% else %>
       <%= form_tag login_url, :id => 'login_form', :class => 'form labels_top messages_bottom' do %>
           <div class="control_group">
-            <div class="label"><%= label_tag :username, 'Username' %></div>
+            <div class="label"><%= label_tag :username, _('Username') %></div>
             <div class="input">
               <%= text_field_tag :username, params[:username],
                                  :class => 'username',
@@ -13,7 +13,7 @@
             </div>
           </div>
           <div class="control_group">
-            <div class="label"><%= label_tag :password, 'Password' %></div>
+            <div class="label"><%= label_tag :password, _('Password') %></div>
             <div class="input"><%= password_field_tag :password, '',
                                                       :class => 'password',
                                                       :id    => 'password-input' %>
