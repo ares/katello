@@ -21,7 +21,11 @@ class Backends::Katello < Backends::Base
   def do_auth
     uri          = URI.parse("#{auth_url}?username=#{username}&password=#{password}")
     http         = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme == 'https' || Configuration.config.enforce_ssl
+    if uri.scheme == 'https' || Configuration.config.enforce_ssl
+      http.use_ssl = true 
+      http.ca_file = Configuration.config.ca_file
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    end
     request      = Net::HTTP::Get.new(uri.request_uri)
     @response    = http.request(request)
   rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError, Net::HTTPBadResponse,

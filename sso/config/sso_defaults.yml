@@ -2,6 +2,9 @@
   # turn this to true if your relay parties use SSL
   # this also makes sure that relay parties using old rack (<= 1.2) will be served properly
   enforce_ssl: true
+  # directory with certificate of CA in pem format, note that every certificate in this directory
+  # is considered so it should not be writable by anybody
+  ca_file: '/usr/share/katello/ca/redhat-uep.pem'
   # relay parties that we can trust, this list should contain every application 
   # that wants to use this application for SSO
   :whitelist:
