@@ -45,7 +45,9 @@ class Api::ApiController < ActionController::Base
     if !request.authorization && current_user
       return true
     else
-      params[:auth_username], params[:auth_password] = user_name_and_password(request) if request.authorization
+      if request.authorization =~ /^Basic/
+        params[:auth_username], params[:auth_password] = user_name_and_password(request)
+      end
       authenticate! :scope => :api
       params.delete('auth_username')
       params.delete('auth_password')

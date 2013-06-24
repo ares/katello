@@ -175,18 +175,31 @@ Warden::Strategies.add(:oauth) do
     true
   end
 
+  # TODO test ['HTTP_KATELLO_SYSTEM'] (foreman-katello-engine)
+  # TODO ask Ivan - DoS vuln fix
+  #               - foreman-katello-engine key&secret configuration??
   def authenticate!
-    return fail("no 'katello-user' header") if request.headers['HTTP_KATELLO_USER'].blank?
-
     rack_request = Rack::Request.new(request.env)
     consumer_key = OAuth::RequestProxy.proxy(rack_request).oauth_consumer_key
-    signature=OAuth::Signature.build(rack_request) do
-      [nil, consumer(consumer_key).secret]
+
+    # we expect system in "system_<name>" form
+    if (system = request.headers['HTTP_KATELLO_SYSTEM'].split('_').first)
+      return fail("no 'katello-user' header") if (user = request.headers['HTTP_KATELLO_USER']).blank?
+    else
+      user = consumer_key
     end
 
-    return fail!("Invalid oauth signature") unless signature.verify
+    consumers = system.present? ? [system_consumer(system)] : user_consumers(consumer_key)
 
-    u = User.where(:username => request.headers['HTTP_KATELLO_USER']).first
+    # lazily construct at least one matching signature
+    result = consumers.any? do |consumer|
+      signature = OAuth::Signature.build(rack_request) { [nil, consumer.secret] }
+      signature.verify
+    end
+
+    return fail!("Invalid oauth signature") unless result
+
+    u = User.where(:username => user).first
     u ? success!(u, "OAuth") : fail!("Username is not correct - could not log in")
   rescue OAuth::Signature::UnknownSignatureMethod => e
     Rails.logger.error "Unknown oauth signature method"+ e.to_s
@@ -196,9 +209,43 @@ Warden::Strategies.add(:oauth) do
     fail!("exception occurred while authenticating via oauth "+ e.to_s)
   end
 
-  def consumer(consumer_key)
-    OAuth::Consumer.new Katello.config[consumer_key.to_sym].oauth_key,
-                        Katello.config[consumer_key.to_sym].oauth_secret
+  def system_consumer(system)
+    oauth_config = Katello.config[system]
+    unless oauth_config.respond_to?(:oauth_key) && oauth_config.respond_to?(:oauth_secret)
+      fail!("Missing OAuth configuration for system: '#{system}'")
+    end
+    return [OAuth::Consumer.new(oauth_config.oauth_key,
+                                oauth_config.oauth_secret)]
+  end
+
+  def user_consumers(consumer_key)
+    secrets = fetch_user_secrets(consumer_key)
+    secrets.map { |s| OAuth::Consumer.new consumer_key, s, oauth_params }
+  end
+
+  def fetch_user_secrets(consumer_key)
+    uri = URI.parse("https://localhost/signo/tokens/#{consumer_key}.json")
+    request = Net::HTTP::Get.new(uri.path)
+    consumer = OAuth::Consumer.new('katello',
+                                   'shhhh',
+                                   oauth_params)
+    consumer.sign!(request)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    resp = http.request(request)
+    JSON.parse(resp.body).reverse
+  rescue JSON::ParserError => e
+    logger.debug "User secrets could not be fetched, response parsing error - #{e.message}"
+    return []
+  end
+
+  def oauth_params
+    { :site => 'https://localhost/',
+      :http_method => 'get',
+      :request_token_path => "",
+      :authorize_path => "",
+      :access_token_path => "" }
   end
 end
 
