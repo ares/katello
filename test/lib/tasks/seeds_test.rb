@@ -15,6 +15,8 @@ module Katello
       # Authorisation is disabled usually when run from a rake db:* task
       User.current = FactoryGirl.build(:user, :admin => true,
                                        :organizations => [], :locations => [])
+      # to correctly simulate rake db:seed, locked template validations pass for rake tasks
+      Foreman.stubs(:in_rake?).returns(true)
       load File.expand_path("#{Rails.root}/db/seeds.rb", __FILE__)
     end
 
