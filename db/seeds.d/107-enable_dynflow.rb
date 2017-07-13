@@ -3,6 +3,4 @@
 #
 # !!! PLEASE KEEP THIS SCRIPT IDEMPOTENT !!!
 #
-User.as(::User.anonymous_api_admin.login) do
-  Setting.find_by(:name => "dynflow_enable_console").update_attributes!(:value => true) if Rails.env.development?
-end
+Setting.find_by(:name => "dynflow_enable_console").update_attributes!(:value => true) if Rails.env.development?
